@@ -13,7 +13,7 @@ public interface ArticleRepository extends JpaRepository<Article,Long> {
     List<Article> findByAuthorId(Long authorId);
 
     @Query(
-            "SELECT a FROM Article a JOIN a.author u JOIN follow f"
+            "SELECT a FROM Article a JOIN a.author u JOIN Follow f"
             + " ON u.id = f.followee.id WHERE"
             + " f.follower.id = :authorId ORDER BY a.createdAt DESC"
     )
