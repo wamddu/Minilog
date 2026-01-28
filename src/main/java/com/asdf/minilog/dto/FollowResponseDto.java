@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 @Data
 @Builder
-public class FollowerResponseDto {
+public class FollowResponseDto {
     @NonNull
     private Long followerId;
 

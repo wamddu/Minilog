@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class FollowerRequestDto {
+public class FollowRequestDto {
     @NonNull
     private Long followerId;
 
