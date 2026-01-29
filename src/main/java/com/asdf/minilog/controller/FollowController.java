@@ -14,12 +14,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/follow")
-public class FollwController {
+public class FollowController {
 
     private final FollowService followService;
 
     @Autowired
-    public FollwController(FollowService followService) {
+    public FollowController(FollowService followService) {
         this.followService = followService;
     }
 
