@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
         name = "follows",
         indexes = {
                 @Index(name = "idx_follower_id", columnList = "follower_id"),
-                @Index(name = "idx_followee_id", columnList = "folowee_id")
+                @Index(name = "idx_followee_id", columnList = "followee_id")
         },
         uniqueConstraints = {@UniqueConstraint(columnNames = {"follower_id", "followee_id"})}
 )
