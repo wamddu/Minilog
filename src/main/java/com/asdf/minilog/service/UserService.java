@@ -2,14 +2,17 @@ package com.asdf.minilog.service;
 
 import com.asdf.minilog.dto.UserRequestDto;
 import com.asdf.minilog.dto.UserResponseDto;
+import com.asdf.minilog.entity.Role;
 import com.asdf.minilog.entity.User;
 import com.asdf.minilog.exception.UserNotFoundException;
 import com.asdf.minilog.repository.UserRepository;
+import com.asdf.minilog.security.MinilogUserDetails;
 import com.asdf.minilog.util.EntityDtoMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,32 +45,46 @@ public class UserService {
             throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
 
+        HashSet<Role> roles = new HashSet<>();
+        roles.add(Role.ROLE_AUTHOR);
+
+        //실제로는 이렇게 하면 안됌
+        if(userRequestDto.getUsername().equals("admin")) {
+            roles.add(Role.ROLE_ADMIN);
+        }
+
         User savedUser =
                 userRepository.save(
                         User.builder()
                                 .username(userRequestDto.getUsername())
                                 .password(userRequestDto.getPassword())
+                                .roles(roles)
                                 .build()
                 );
 
         return EntityDtoMapper.toDto(savedUser);
     }
 
-    public UserResponseDto updateUser(Long userId, UserRequestDto userRequestDto) {
+    public UserResponseDto updateUser(MinilogUserDetails userDetails, Long userId, UserRequestDto userRequestDto) {
+
+        if(!userDetails.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(Role.ROLE_ADMIN.name()))
+        && !userDetails.getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
         User user =
                 userRepository
                         .findById(userId)
                         .orElseThrow(
                                 () ->
                                         new UserNotFoundException(
-                                                String.format("해당 아이디(%d)를 가진 사용자를 찾을 수 없습니다.",  userId)
-                                        )
-                        );
+                                                String.format("해당 아이디(%d)를 가진 사용자를 찾을 수 없습니다.", userId)));
 
         user.setUsername(userRequestDto.getUsername());
         user.setPassword(userRequestDto.getPassword());
 
-        var updatedUser = userRepository.save(user);
+        User updatedUser = userRepository.save(user);
         return EntityDtoMapper.toDto(updatedUser);
     }
 
@@ -83,5 +100,17 @@ public class UserService {
                         );
 
         userRepository.deleteById(userId);
+    }
+
+    public UserResponseDto getUserByUsername(String username) {
+        return userRepository
+                .findByUsername(username)
+                .map(EntityDtoMapper::toDto)
+                .orElseThrow(
+                        () ->
+                                new UserNotFoundException(
+                                        String.format("해당 이름(%s)를 가진 사용자를 찾을 수 없습니다.", username)
+                                )
+                );
     }
 }
